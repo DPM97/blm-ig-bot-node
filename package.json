@@ -19,6 +19,8 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.3",
     "colorthief": "^2.3.0",
+    "instagram-private-api": "^1.40.1",
+    "instagram-web-api": "^2.2.0",
     "node-cache": "^5.1.0",
     "node-instagram": "^4.3.0",
     "request": "^2.88.2"

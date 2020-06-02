@@ -1,4 +1,9 @@
 {
+    "instagram": {
+        "username": "",
+        "password": "",
+        "message": "Hi, please don't use the blacklivesmatter tag as it is currently blocking important info from being shared. Please delete and repost with #BlackoutTuesday instead (Editing the caption wont work). If you want other ways to help please check out our bio. Thank you :)"
+    },
     "delay": 30,
     "threshold": 50,
     "cacheTTL": 300

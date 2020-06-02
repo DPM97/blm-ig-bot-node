@@ -5,17 +5,14 @@ const nc = require('node-cache');
 const Cache = new nc();
 const fs = require('fs');
 const Instagram = require('instagram-web-api')
-const user = config.instagram.username.toString()
-const pass = config.instagram.password.toString()
-const IGClient = new Instagram({username: user, password: pass})
 let queue = [];
 let proxies = [];
-
+let accounts = [];
 
 const main = async () => {
     startQueue();
-    await IGClient.login({username: user, password: pass})
     await fs.readFile('proxies.txt', 'utf-8', (err, out) => { proxies = out.split('\r\n') })
+    await initAccounts()
     await getRecent();
     let f = setInterval(async () => {
         getRecent();
@@ -33,7 +30,7 @@ const getRecent = async () => {
         } else {
             let res = await body.match(/(?<="display_url":"\s*).*?(?=\s*",")/gs)
             let codes = await body.match(/(?<="shortcode":"\s*).*?(?=\s*",")/gs)
-            let o = { }
+            let o = {}
             await res.forEach(async (url, i) => {
                 o[`${codes[i]}`] = { url: url.replace(/\\u0026/g, '&'), post: codes[i] }
             })
@@ -69,13 +66,14 @@ const send = async (id) => {
 }
 
 const comment = async (id) => {
-    return new Promise(async(resolve, reject) => {
-        setTimeout(async() => {
-            const media = await IGClient.getMediaByShortcode({ shortcode: id })
-            console.log(`https://instagram.com/p/${id}`)
+    return new Promise(async (resolve, reject) => {
+        setTimeout(async () => {
+            let client = await accountLogic()
+            const media = await client.getMediaByShortcode({ shortcode: id })
+            console.log(`https://instagram.com/p/${id} added to commenting queue.`)
             queue.push(media.id)
             resolve()
-        }, 4000)
+        }, 2000)
     })
 }
 
@@ -100,25 +98,46 @@ const getAvgColor = async (url) => {
     });
 }
 
-const proxyLogic = async (url) => {
+const proxyLogic = async () => {
     return new Promise(async (resolve, reject) => {
-      if (proxies.length == 0) {
-          resolve('')
-      } else {
-          let p = proxies[Math.random() * proxies.length | 0]
-          p = p.split(':')
-          resolve(`http://${p[2]}:${p[3]}@${p[0]}:${p[1]}`)
-      }
+        if (proxies.length == 0) {
+            resolve('')
+        } else {
+            let p = proxies[Math.random() * proxies.length | 0]
+            p = p.split(':')
+            resolve(`http://${p[2]}:${p[3]}@${p[0]}:${p[1]}`)
+        }
+    })
+}
+
+const accountLogic = async () => {
+    return new Promise(async (resolve, reject) => {
+        if (accounts.length == 0) {
+            console.error('No accounts have been added. Please add accounts')
+            return process.exit(1);
+        } else {
+            let client = accounts[Math.random() * accounts.length | 0]
+            resolve(client)
+        }
+    })
+}
+
+const initAccounts = async () => {
+    let accts = config.instagram.accounts;
+    accts.forEach(async acct => {
+        let client = new Instagram({ username: acct.username.toString(), password: acct.password.toString() })
+        await client.login({ username: acct.username.toString(), password: acct.password.toString() });
+        accounts.push(client);
     })
 }
 
 const startQueue = async () => {
     let f = setInterval(async () => {
         if (queue.length > 0) {
-            await IGClient.addComment({ mediaId: queue.shift(), text: config.instagram.message.toString() })
+            let acct = await accountLogic()
+            await acct.addComment({ mediaId: queue.shift(), text: config.instagram.message.toString() })
         }
-    }, 5000)
+    }, 3000)
 }
-
 
 main();

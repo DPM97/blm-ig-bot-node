@@ -1,0 +1,9 @@
+{
+    "instagram": {
+        "username": "",
+        "password": ""
+    },
+    "delay": 30,
+    "threshold": 50,
+    "cacheTTL": 300
+}

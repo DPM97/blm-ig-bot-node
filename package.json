@@ -1,0 +1,26 @@
+{
+  "name": "blm-ig-bot-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DPM97/blm-ig-bot-node.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DPM97/blm-ig-bot-node/issues"
+  },
+  "homepage": "https://github.com/DPM97/blm-ig-bot-node#readme",
+  "dependencies": {
+    "cheerio": "^1.0.0-rc.3",
+    "colorthief": "^2.3.0",
+    "node-cache": "^5.1.0",
+    "node-instagram": "^4.3.0",
+    "request": "^2.88.2"
+  }
+}

@@ -6,11 +6,10 @@ const nc = require('node-cache');
 const Cache = new nc();
 const fs = require('fs');
 let proxies = [];
-const main = async () => {
-    await fs.readFile('proxies.txt', 'utf-8', (err, out) => {
-        proxies = out.split('\r\n')
-    })
 
+const main = async () => {
+    await fs.readFile('proxies.txt', 'utf-8', (err, out) => { proxies = out.split('\r\n') })
+    await getRecent();
     let f = setInterval(async () => {
         getRecent();
     }, config.delay * 1000)
@@ -22,7 +21,7 @@ const getRecent = async () => {
         method: "GET",
         proxy: await proxyLogic()
     }, async (err, resp, body) => {
-        if (err || res.statusCode != 200) {
+        if (err || resp.statusCode != 200) {
             return getRecent()
         } else {
             let res = await body.match(/(?<="display_url":"\s*).*?(?=\s*",")/gs)
@@ -39,7 +38,7 @@ const getRecent = async () => {
 const handleRecent = async (recent) => {
     for (const key in recent) {
         let c = await getAvgColor(recent[key].url);
-        if (c >= config.threshold || await Cache.get(key) == undefined) {
+        if (c >= config.threshold || await Cache.get(key) != undefined) {
             delete recent[key]
         } else {
             await Cache.set(key, recent[key], config.cacheTTL);

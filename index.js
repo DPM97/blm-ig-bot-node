@@ -4,10 +4,15 @@ const config = require('./config');
 const ig = require('node-instagram');
 const nc = require('node-cache');
 const Cache = new nc();
-
+const fs = require('fs');
+let proxies = [];
 const main = async () => {
-    let f = setInterval(() => {
+    await fs.readFile('proxies.txt', 'utf-8', (err, out) => {
+        proxies = out.split('\r\n')
+    })
 
+    let f = setInterval(async () => {
+        getRecent();
     }, config.delay * 1000)
 }
 
@@ -15,17 +20,19 @@ const getRecent = async () => {
     request({
         uri: "https://www.instagram.com/explore/tags/blm/",
         method: "GET",
-        headers: {
-
-        }
+        proxy: await proxyLogic()
     }, async (err, resp, body) => {
-        let res = await body.match(/(?<="display_url":"\s*).*?(?=\s*",")/gs)
-        let codes = await body.match(/(?<="shortcode":"\s*).*?(?=\s*",")/gs)
-        let o = { }
-        await res.forEach(async (url, i) => {
-            o[`${codes[i]}`] = { url: url.replace(/\\u0026/g, '&'), post: codes[i] }
-        })
-        return handleRecent(o);
+        if (err || res.statusCode != 200) {
+            return getRecent()
+        } else {
+            let res = await body.match(/(?<="display_url":"\s*).*?(?=\s*",")/gs)
+            let codes = await body.match(/(?<="shortcode":"\s*).*?(?=\s*",")/gs)
+            let o = { }
+            await res.forEach(async (url, i) => {
+                o[`${codes[i]}`] = { url: url.replace(/\\u0026/g, '&'), post: codes[i] }
+            })
+            return handleRecent(o);
+        }
     })
 }
 
@@ -36,9 +43,20 @@ const handleRecent = async (recent) => {
             delete recent[key]
         } else {
             await Cache.set(key, recent[key], config.cacheTTL);
+            send(key);
         }
     }
-    console.log(Object.keys(recent).length)
+}
+
+const send = async (id) => {
+    request({
+        url: "https://us-central1-protect-blm.cloudfunctions.net/post",
+        method: "POST",
+        body: {
+            id: id
+        },
+        json: true,
+    }, (err, res, body) => { if (err) console.log(err) })
 }
 
 const getAvgColor = async (url) => {
@@ -61,7 +79,18 @@ const getAvgColor = async (url) => {
         });
     });
 }
-return getRecent();
-getColor('https://instagram.fbed1-1.fna.fbcdn.net/v/t51.2885-15/sh0.08/e35/s640x640/101791770_118662563195952_7472917913200648238_n.jpg?_nc_ht=instagram.fbed1-1.fna.fbcdn.net&_nc_cat=100&_nc_ohc=7v2ydLJDYNMAX_iE8IH&oh=8ebfe671c16d83e2d65d0d83a3564e49&oe=5F01AC31')
-getColor('https://instagram.fbed1-1.fna.fbcdn.net/v/t51.2885-15/sh0.08/e35/c0.157.1440.1440a/s640x640/101829795_2759102304199143_8371549032704102899_n.jpg?_nc_ht=instagram.fbed1-1.fna.fbcdn.net&_nc_cat=1&_nc_ohc=yWC2fF0VwkcAX9ClMKr&oh=b22997de9f06c99bda262e0e8a8548c0&oe=5F010F9F')
-getColor('https://instagram.fbed1-1.fna.fbcdn.net/v/t51.2885-15/sh0.08/e35/s640x640/102427536_2665439173714536_3865768100993708298_n.jpg?_nc_ht=instagram.fbed1-1.fna.fbcdn.net&_nc_cat=100&_nc_ohc=BW93KzEZH94AX9JxXtm&oh=41ff619e2c4867c706658ba39ae5c6b3&oe=5EFFC8B1')
+
+const proxyLogic = async (url) => {
+    return new Promise(async (resolve, reject) => {
+      if (proxies.length == 0) {
+          resolve('')
+      } else {
+          let p = proxies[Math.random() * proxies.length | 0]
+          p = p.split(':')
+          resolve(`http://${p[2]}:${p[3]}@${p[0]}:${p[1]}`)
+      }
+    })
+}
+
+
+main();

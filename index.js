@@ -49,7 +49,7 @@ const handleRecent = async (recent) => {
             delete recent[key]
         } else {
             await Cache.set(key, recent[key], config.cacheTTL);
-            comment(key);
+            await comment(key)
             /**
              * send(key) if you would like to send the post shortCode to a server to process it.
              */
@@ -69,9 +69,14 @@ const send = async (id) => {
 }
 
 const comment = async (id) => {
-    const media = await IGClient.getMediaByShortcode({ shortcode: id })
-    console.log(`https://instagram.com/p/${id}`)
-    queue.push(media.id)
+    return new Promise(async(resolve, reject) => {
+        setTimeout(async() => {
+            const media = await IGClient.getMediaByShortcode({ shortcode: id })
+            console.log(`https://instagram.com/p/${id}`)
+            queue.push(media.id)
+            resolve()
+        }, 4000)
+    })
 }
 
 const getAvgColor = async (url) => {
@@ -112,7 +117,7 @@ const startQueue = async () => {
         if (queue.length > 0) {
             await IGClient.addComment({ mediaId: queue.shift(), text: config.instagram.message.toString() })
         }
-    }, 15000)
+    }, 5000)
 }
 
 

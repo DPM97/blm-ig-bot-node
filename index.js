@@ -10,9 +10,9 @@ let proxies = [];
 let accounts = [];
 
 const main = async () => {
+    await initAccounts()
     startQueue();
     await fs.readFile('proxies.txt', 'utf-8', (err, out) => { proxies = out.split('\r\n') })
-    await initAccounts()
     await getRecent();
     let f = setInterval(async () => {
         getRecent();
@@ -73,7 +73,7 @@ const comment = async (id) => {
             console.log(`https://instagram.com/p/${id} added to commenting queue.`)
             queue.push(media.id)
             resolve()
-        }, 2000)
+        }, 30000 / accounts.length)
     })
 }
 
@@ -123,11 +123,17 @@ const accountLogic = async () => {
 }
 
 const initAccounts = async () => {
-    let accts = config.instagram.accounts;
-    accts.forEach(async acct => {
-        let client = new Instagram({ username: acct.username.toString(), password: acct.password.toString() })
-        await client.login({ username: acct.username.toString(), password: acct.password.toString() });
-        accounts.push(client);
+    return new Promise((resolve, reject) => {
+
+        let accts = config.instagram.accounts;
+        accts.forEach(async (acct, i) => {
+            let client = new Instagram({ username: acct.username.toString(), password: acct.password.toString() })
+            await client.login({ username: acct.username.toString(), password: acct.password.toString() });
+            accounts.push(client);
+            if (i == accts.length - 1) {
+                resolve()
+            }
+        })
     })
 }
 
@@ -137,7 +143,7 @@ const startQueue = async () => {
             let acct = await accountLogic()
             await acct.addComment({ mediaId: queue.shift(), text: config.instagram.message.toString() })
         }
-    }, 3000)
+    }, 30000 / accounts.length)
 }
 
 main();

@@ -8,7 +8,9 @@ Fetches all recenty #BLM posts under a certain darkness threshold (targeting bla
 
 Proxy support
 
-No login required
+Multiple login's support
+
+Duplicate caching
 
 ## Installation
 

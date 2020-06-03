@@ -29,3 +29,7 @@ threshold --> the lower the darker
 delay --> seconds
 
 ***proxies.txt should be left blank if you would to go proxyless.***
+
+## Issues
+
+Instagram rate-limits kinda suck. Due to this, its probably best to keep comments down to about 1/min/account

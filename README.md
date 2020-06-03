@@ -2,7 +2,7 @@
 
 ## Usage
 
-Sends all #BLM instagram post ID's under a certain darkness threshold to an endpoint
+Fetches all recenty #BLM posts under a certain darkness threshold (targeting black-box posts) & comments a message telling them to use another hashtag. These posts could mask important information on the #BLM hashtag which could in turn save/help many lives.
 
 ## Features
 
